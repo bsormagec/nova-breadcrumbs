@@ -24,6 +24,7 @@ class NovaBreadcrumbsController extends Controller
 
     public function __construct()
     {
+        $this->crumbs = collect();
         $this->store = app()->make(NovaBreadcrumbsStore::class);
     }
 
