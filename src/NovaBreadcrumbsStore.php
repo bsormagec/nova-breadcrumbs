@@ -33,6 +33,26 @@ class NovaBreadcrumbsStore
         ]);
     }
 
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    public function setModel($model)
+    {
+        $this->model = $model;
+    }
+
+    public function getResource()
+    {
+        return $this->resource;
+    }
+
+    public function setResource($resource)
+    {
+        $this->resource = $resource;
+    }
+
     public function __destruct()
     {
         $this->crumbs = collect();
