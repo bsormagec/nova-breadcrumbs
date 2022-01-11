@@ -10,6 +10,7 @@ class NovaBreadcrumbsStore
     protected $resource;
     protected $model;
     protected $crumbs;
+    protected $uri = [];
 
     public function __construct()
     {
@@ -22,7 +23,9 @@ class NovaBreadcrumbsStore
         $last['path'] = null;
         $this->crumbs->push($last);
 
-        return $this->crumbs;
+        return $this->crumbs->unique(function ($crumb) {
+            return $crumb['path'].'_'.$crumb['title'];
+        });
     }
 
     public function appendToCrumbs($title, $url = null)
@@ -36,6 +39,21 @@ class NovaBreadcrumbsStore
     public function setCrumbs($crumbs)
     {
         $this->crumbs = $crumbs;
+    }
+
+    public function setCrumbsByUri($uri, $crumbs)
+    {
+        $this->uri[$uri] = $crumbs;
+    }
+
+    public function getCrumbsByUri($uri)
+    {
+        $last = $this->uri[$uri]->pop();
+        $last['path'] = null;
+        $this->uri[$uri]->push($last);
+        return $this->uri[$uri]->unique(function ($crumb) {
+            return $crumb['path'].'_'.$crumb['title'];
+        });
     }
 
     public function getModel()
@@ -56,11 +74,6 @@ class NovaBreadcrumbsStore
     public function setResource($resource)
     {
         $this->resource = $resource;
-    }
-
-    public function __destruct()
-    {
-        $this->crumbs = collect();
     }
 
 }

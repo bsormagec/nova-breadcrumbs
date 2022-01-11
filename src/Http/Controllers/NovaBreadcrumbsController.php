@@ -97,8 +97,9 @@ class NovaBreadcrumbsController extends Controller
                 $pathParts->slice(0, 4)->implode('/'));
         }
         $this->store->setCrumbs($this->crumbs);
+        $this->store->setCrumbsByUri($request->input('location.pathname'), $this->crumbs);
 
-        return $this->store->getCrumbs();
+        return $this->store->getCrumbsByUri($request->input('location.pathname'));
     }
 
     /**
