@@ -2,6 +2,7 @@
 
 namespace ChrisWare\NovaBreadcrumbs\Http\Controllers;
 
+use ChrisWare\NovaBreadcrumbs\NovaBreadcrumbsStore;
 use ChrisWare\NovaBreadcrumbs\Traits\Breadcrumbs;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -10,18 +11,19 @@ use Illuminate\Support\Str;
 use Laravel\Nova\Http\Requests\InteractsWithLenses;
 use Laravel\Nova\Http\Requests\InteractsWithResources;
 use Laravel\Nova\Nova;
+use function React\Promise\all;
 
 class NovaBreadcrumbsController extends Controller
 {
     protected $resource;
     protected $model;
-    protected $crumbs;
+    protected $store;
 
     use InteractsWithResources, InteractsWithLenses;
 
     public function __construct()
     {
-        $this->crumbs = new Collection();
+        $this->store = app()->make(NovaBreadcrumbsStore::class);
     }
 
     public function __invoke(Request $request)
@@ -93,10 +95,7 @@ class NovaBreadcrumbsController extends Controller
 
     protected function appendToCrumbs($title, $url = null)
     {
-        $this->crumbs->push([
-            'title' => __($title),
-            'path' => Str::start($url, '/'),
-        ]);
+        $this->store->appendToCrumbs($title, $url);
     }
 
     /**
@@ -104,11 +103,7 @@ class NovaBreadcrumbsController extends Controller
      */
     public function getCrumbs(): Collection
     {
-        $last = $this->crumbs->pop();
-        $last['path'] = null;
-        $this->crumbs->push($last);
-
-        return $this->crumbs;
+        return $this->store->getCrumbs();
     }
 
     /**

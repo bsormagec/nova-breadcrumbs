@@ -44,6 +44,8 @@ class ToolServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton(NovaBreadcrumbsStore::class, function () {
+            return new NovaBreadcrumbsStore();
+        });
     }
 }
