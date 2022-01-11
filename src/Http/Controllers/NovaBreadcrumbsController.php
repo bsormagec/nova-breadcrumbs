@@ -18,6 +18,7 @@ class NovaBreadcrumbsController extends Controller
     protected $resource;
     protected $model;
     protected $store;
+    protected $crumbs;
 
     use InteractsWithResources, InteractsWithLenses;
 
@@ -36,7 +37,7 @@ class NovaBreadcrumbsController extends Controller
             ->explode('/')
             ->filter();
 
-        $this->store->appendToCrumbs(__('Home'), '/');
+        $this->appendToCrumbs(__('Home'), '/');
 
         if ($request->has('query') && ($query = collect($request->get('query'))->filter()) && $query->count() > 1) {
             $cloneParts = clone $pathParts;
@@ -53,9 +54,9 @@ class NovaBreadcrumbsController extends Controller
             if (empty($this->store->getResource()) == false) {
                 $model = $this->findResourceOrFail($query->get('viaResourceId'));
                 $this->store->setModel($model);
-                $this->store->appendToCrumbs($this->store->getResource()::breadcrumbResourceLabel(),
+                $this->appendToCrumbs($this->store->getResource()::breadcrumbResourceLabel(),
                     $cloneParts->slice(0, 2)->implode('/'));
-                $this->store->appendToCrumbs($this->store->getModel()->breadcrumbResourceTitle(),
+                $this->appendToCrumbs($this->store->getModel()->breadcrumbResourceTitle(),
                     $cloneParts->slice(0, 3)->implode('/'));
             }
         }
@@ -68,32 +69,33 @@ class NovaBreadcrumbsController extends Controller
         $this->store->setResource($resource);
 
         if ($this->store->getResource()) {
-            $this->store->appendToCrumbs($this->store->getResource()::breadcrumbResourceLabel(),
+            $this->appendToCrumbs($this->store->getResource()::breadcrumbResourceLabel(),
                 $pathParts->slice(0, 2)->implode('/'));
         }
 
         if ($view == 'create') {
-            $this->store->appendToCrumbs(Str::title($view), $pathParts->slice(0, 3)->implode('/'));
+            $this->appendToCrumbs(Str::title($view), $pathParts->slice(0, 3)->implode('/'));
         } elseif ($view == 'dashboard.custom' && count(Nova::availableDashboards($request)) >= 1) {
-            $this->store->appendToCrumbs(Str::title($request->get('name')), $pathParts->slice(0, 3)->implode('/'));
+            $this->appendToCrumbs(Str::title($request->get('name')), $pathParts->slice(0, 3)->implode('/'));
         } elseif ($view == 'lens') {
             $lens = Str::title(str_replace('-', ' ', $pathParts->get(3)));
-            $this->store->appendToCrumbs($lens, $pathParts->slice(0, 4)->implode('/'));
+            $this->appendToCrumbs($lens, $pathParts->slice(0, 4)->implode('/'));
         } elseif ($pathParts->has(2)) {
             $resource = Nova::resourceForKey($pathParts->get(1));
             $this->store->setResource($resource);
             $model = $this->findResourceOrFail($pathParts->get(2));
             $this->store->setModel($model);
             if (method_exists($this->store->getModel(), 'breadcrumbResourceTitle')) {
-                $this->store->appendToCrumbs($this->store->getModel()->breadcrumbResourceTitle(),
+                $this->appendToCrumbs($this->store->getModel()->breadcrumbResourceTitle(),
                     $pathParts->slice(0, 3)->implode('/'));
             }
         }
 
         if ($pathParts->has(3) && $view != 'lens') {
-            $this->store->appendToCrumbs(Str::title($view),
+            $this->appendToCrumbs(Str::title($view),
                 $pathParts->slice(0, 4)->implode('/'));
         }
+        $this->store->setCrumbs($this->crumbs);
 
         return $this->store->getCrumbs();
     }
@@ -108,6 +110,14 @@ class NovaBreadcrumbsController extends Controller
         return tap($this->store->getResource(), function ($resource) {
             abort_if(is_null($resource), 404);
         });
+    }
+
+    public function appendToCrumbs($title, $url = null)
+    {
+        $this->crumbs->push([
+            'title' => __($title),
+            'path' => Str::start($url, '/'),
+        ]);
     }
 
     protected function resourceFromKey($key)
