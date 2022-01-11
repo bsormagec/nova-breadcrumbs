@@ -22,7 +22,7 @@ class NovaBreadcrumbsStore
         $last['path'] = null;
         $this->crumbs->push($last);
 
-        return $this->crumbs;
+        return $this->crumbs->take(-4);
     }
 
     public function appendToCrumbs($title, $url = null)
