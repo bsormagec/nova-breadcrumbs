@@ -33,4 +33,9 @@ class NovaBreadcrumbsStore
         ]);
     }
 
+    public function __destruct()
+    {
+        $this->crumbs = collect();
+    }
+
 }
